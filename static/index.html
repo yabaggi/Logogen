@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --card-light: #252540;
+            --text: #ffffff;
+            --text-muted: #a0a0b0;
+            --border: #333355;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        .preview-section {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .preview-container {
+            background: #ffffff;
+            border-radius: 12px;
+            aspect-ratio: 4/5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-placeholder {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .preview-placeholder svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay span {
+            margin-top: 12px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .form-section {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            background: var(--card-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a0a0b0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 44px;
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .color-input-wrapper input[type="text"] {
+            flex: 1;
+        }
+
+        input[type="color"] {
+            width: 52px;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 4px;
+            background: var(--card-light);
+            border: 1px solid var(--border);
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 8px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .row .form-group {
+            margin-bottom: 0;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            background: var(--card-light);
+            border-radius: 4px;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider-value {
+            min-width: 44px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--card-light);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .btn-secondary {
+            background: var(--card-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card);
+            color: var(--text);
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+        }
+
+        .shape-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .shape-option {
+            padding: 12px 8px;
+            background: var(--card-light);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .shape-option:hover {
+            border-color: var(--primary);
+        }
+
+        .shape-option.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .shape-option .icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+        }
+
+        .status-dot.online {
+            background: var(--success);
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 12px 0;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+        }
+
+        .collapsible-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .collapsible-header svg {
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+
+        .collapsible-header.open svg {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.open {
+            max-height: 500px;
+        }
+
+        .advanced-options {
+            padding-top: 16px;
+        }
+
+        @media (min-width: 481px) {
+            .container {
+                padding: 24px;
+            }
+
+            header {
+                padding: 32px 0;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .shape-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ Logo Generator</h1>
+            <p>Create beautiful logos instantly</p>
+        </header>
+
+        <section class="preview-section">
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-placeholder" id="placeholder">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p>Your logo will appear here</p>
+                </div>
+                <img id="previewImage" class="hidden" alt="Generated Logo">
+                <div class="loading-overlay hidden" id="loadingOverlay">
+                    <div class="spinner"></div>
+                    <span>Generating...</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <form id="logoForm">
+                <div class="form-group">
+                    <label>Logo Text</label>
+                    <input type="text" id="logoText" placeholder="Enter your text..." value="LOGO">
+                </div>
+
+                <div class="form-group">
+                    <label>Choose Shape</label>
+                    <div class="shape-grid" id="shapeGrid">
+                        <div class="shape-option selected" data-shape="none">
+                            <span class="icon">📝</span>
+                            Text Only
+                        </div>
+                        <div class="shape-option" data-shape="chair">
+                            <span class="icon">🪑</span>
+                            Chair
+                        </div>
+                        <div class="shape-option" data-shape="table">
+                            <span class="icon">🪵</span>
+                            Table
+                        </div>
+                        <div class="shape-option" data-shape="car">
+                            <span class="icon">🚗</span>
+                            Car
+                        </div>
+                        <div class="shape-option" data-shape="house">
+                            <span class="icon">🏠</span>
+                            House
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>Shape Color</label>
+                        <div class="color-input-wrapper">
+                            <input type="text" id="shapeColor" value="black">
+                            <input type="color" id="shapeColorPicker" value="#000000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Text Color</label>
+                        <div class="color-input-wrapper">
+                            <input type="text" id="textColor" value="black">
+                            <input type="color" id="textColorPicker" value="#000000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Font Size</label>
+                    <div class="slider-container">
+                        <input type="range" id="fontSize" min="12" max="72" value="32">
+                        <span class="slider-value" id="fontSizeValue">32</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Scale</label>
+                    <div class="slider-container">
+                        <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1">
+                        <span class="slider-value" id="scaleValue">1.0x</span>
+                    </div>
+                </div>
+
+                <div class="collapsible-header" id="advancedToggle">
+                    <h3>Advanced Options</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div class="collapsible-content" id="advancedContent">
+                    <div class="advanced-options">
+                        <div class="row">
+                            <div class="form-group">
+                                <label>Text X Position</label>
+                                <input type="number" id="textX" value="200" min="0" max="400">
+                            </div>
+                            <div class="form-group">
+                                <label>Text Y Position</label>
+                                <input type="number" id="textY" value="400" min="0" max="500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="generateBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Generate Logo
+                </button>
+
+                <button type="button" class="btn btn-secondary" id="downloadBtn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download PNG
+                </button>
+            </form>
+
+            <div class="api-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking API...</span>
+            </div>
+        </section>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Configuration - Change this to your API URL
+// const API_BASE_URL = 'http://localhost:8000';
+        const API_BASE_URL = '';
+
+        // DOM Elements
+        const elements = {
+            form: document.getElementById('logoForm'),
+            logoText: document.getElementById('logoText'),
+            shapeGrid: document.getElementById('shapeGrid'),
+            shapeColor: document.getElementById('shapeColor'),
+            shapeColorPicker: document.getElementById('shapeColorPicker'),
+            textColor: document.getElementById('textColor'),
+            textColorPicker: document.getElementById('textColorPicker'),
+            fontSize: document.getElementById('fontSize'),
+            fontSizeValue: document.getElementById('fontSizeValue'),
+            scale: document.getElementById('scale'),
+            scaleValue: document.getElementById('scaleValue'),
+            textX: document.getElementById('textX'),
+            textY: document.getElementById('textY'),
+            generateBtn: document.getElementById('generateBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            previewImage: document.getElementById('previewImage'),
+            placeholder: document.getElementById('placeholder'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            toast: document.getElementById('toast'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            advancedToggle: document.getElementById('advancedToggle'),
+            advancedContent: document.getElementById('advancedContent')
+        };
+
+        // State
+        let selectedShape = 'none';
+        let currentImageUrl = null;
+
+        // Initialize
+        function init() {
+            setupEventListeners();
+            checkApiStatus();
+            loadShapesFromApi();
+        }
+
+        function setupEventListeners() {
+            // Shape selection
+            elements.shapeGrid.addEventListener('click', (e) => {
+                const option = e.target.closest('.shape-option');
+                if (option) {
+                    document.querySelectorAll('.shape-option').forEach(el => el.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedShape = option.dataset.shape;
+                }
+            });
+
+            // Color pickers sync
+            elements.shapeColorPicker.addEventListener('input', (e) => {
+                elements.shapeColor.value = e.target.value;
+            });
+            elements.shapeColor.addEventListener('input', (e) => {
+                if (isValidColor(e.target.value)) {
+                    elements.shapeColorPicker.value = toHex(e.target.value);
+                }
+            });
+
+            elements.textColorPicker.addEventListener('input', (e) => {
+                elements.textColor.value = e.target.value;
+            });
+            elements.textColor.addEventListener('input', (e) => {
+                if (isValidColor(e.target.value)) {
+                    elements.textColorPicker.value = toHex(e.target.value);
+                }
+            });
+
+            // Sliders
+            elements.fontSize.addEventListener('input', (e) => {
+                elements.fontSizeValue.textContent = e.target.value;
+            });
+
+            elements.scale.addEventListener('input', (e) => {
+                elements.scaleValue.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+            });
+
+            // Advanced options toggle
+            elements.advancedToggle.addEventListener('click', () => {
+                elements.advancedToggle.classList.toggle('open');
+                elements.advancedContent.classList.toggle('open');
+            });
+
+            // Form submission
+            elements.form.addEventListener('submit', handleSubmit);
+
+            // Download button
+            elements.downloadBtn.addEventListener('click', handleDownload);
+        }
+
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/shapes`);
+                if (response.ok) {
+                    elements.statusDot.classList.add('online');
+                    elements.statusText.textContent = 'API Connected';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                elements.statusDot.classList.remove('online');
+                elements.statusText.textContent = 'API Offline';
+            }
+        }
+
+        async function loadShapesFromApi() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/shapes`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Shapes are already hardcoded in HTML for better UX
+                    // But you could dynamically build the grid here
+                    console.log('Available shapes:', data.shapes);
+                }
+            } catch (error) {
+                console.error('Failed to load shapes:', error);
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const requestData = {
+                shape: selectedShape,
+                text: elements.logoText.value || 'LOGO',
+                color: elements.shapeColor.value,
+                text_color: elements.textColor.value,
+                scale: parseFloat(elements.scale.value),
+                font_size: parseInt(elements.fontSize.value),
+                text_x: parseInt(elements.textX.value),
+                text_y: parseInt(elements.textY.value)
+            };
+
+            setLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate-logo`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Display the generated image
+                currentImageUrl = `${API_BASE_URL}${data.url}`;
+                elements.previewImage.src = currentImageUrl + '?t=' + Date.now(); // Cache bust
+                elements.previewImage.classList.remove('hidden');
+                elements.placeholder.classList.add('hidden');
+                elements.downloadBtn.disabled = false;
+
+                showToast('Logo generated successfully!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(error.message || 'Failed to generate logo', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function handleDownload() {
+            if (!currentImageUrl) return;
+
+            try {
+                const response = await fetch(currentImageUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `logo_${elements.logoText.value || 'generated'}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                showToast('Download started!', 'success');
+            } catch (error) {
+                showToast('Download failed', 'error');
+            }
+        }
+
+        function setLoading(loading) {
+            if (loading) {
+                elements.loadingOverlay.classList.remove('hidden');
+                elements.generateBtn.disabled = true;
+            } else {
+                elements.loadingOverlay.classList.add('hidden');
+                elements.generateBtn.disabled = false;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            elements.toast.textContent = message;
+            elements.toast.className = 'toast ' + type;
+            elements.toast.classList.add('show');
+
+            setTimeout(() => {
+                elements.toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function isValidColor(color) {
+            const s = new Option().style;
+            s.color = color;
+            return s.color !== '';
+        }
+
+        function toHex(color) {
+            const ctx = document.createElement('canvas').getContext('2d');
+            ctx.fillStyle = color;
+            return ctx.fillStyle;
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
